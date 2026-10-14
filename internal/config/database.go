@@ -86,6 +86,9 @@ func parseDatabaseURL(rawURL string) string {
 			if query.Get("charset") == "" {
 				query.Set("charset", "utf8mb4")
 			}
+			if query.Get("tls") == "" && (strings.Contains(host, "tidbcloud.com") || strings.Contains(host, "aivencloud.com")) {
+				query.Set("tls", "true")
+			}
 			return fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", user, pass, host, dbName, query.Encode())
 		}
 	}
@@ -95,6 +98,9 @@ func parseDatabaseURL(rawURL string) string {
 			sep = "&"
 		}
 		rawURL += sep + "parseTime=true&loc=Local"
+	}
+	if !strings.Contains(rawURL, "tls=") && strings.Contains(rawURL, "tidbcloud.com") {
+		rawURL += "&tls=true"
 	}
 	return rawURL
 }
