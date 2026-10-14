@@ -1,0 +1,157 @@
+{{ define "content" }}
+<div class="container py-5">
+  <!-- Welcome Header -->
+  <div class="card card-custom p-4 mb-4">
+    <div class="row align-items-center gy-3">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-success bg-opacity-20 text-success p-3 fs-3">
+            <i class="bi bi-person-arms-up"></i>
+          </div>
+          <div>
+            <h3 class="fw-bold mb-1">สวัสดี, คุณ {{ .User.Name }}!</h3>
+            <p class="text-muted small mb-0">พร้อมสำหรับการออกกำลังกายวันนี้แล้วหรือยัง? เช็คคิวและวางแผนฝึกได้เลย</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="/booking" class="btn btn-gym-primary">
+          <i class="bi bi-plus-circle me-1"></i> จองเวลาเข้าเล่นใหม่
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric Overview -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-4">
+      <div class="metric-box">
+        <span class="text-muted small">คิวการเล่นที่กำลังจะมาถึง</span>
+        <div class="metric-value text-success">{{ .Data.UpcomingCount }}</div>
+        <small class="text-muted">เซสชันที่จองไว้</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="metric-box cyan">
+        <span class="text-muted small">ฝึกเสร็จสิ้นแล้ว</span>
+        <div class="metric-value text-info">{{ .Data.CompletedCount }}</div>
+        <small class="text-muted">เป้าหมายที่สำเร็จ</small>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="metric-box amber">
+        <span class="text-muted small">รายการที่ยกเลิก</span>
+        <div class="metric-value text-warning">{{ .Data.CancelledCount }}</div>
+        <small class="text-muted">ยกเลิกแล้ว</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Upcoming Bookings Table -->
+    <div class="col-lg-8">
+      <div class="card card-custom h-100">
+        <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-light"><i class="bi bi-calendar-check text-success me-2"></i> คิวการเล่นที่กำลังจะมาถึง</h5>
+          <a href="/my-bookings" class="btn btn-sm btn-gym-outline">ดูประวัติทั้งหมด</a>
+        </div>
+        <div class="card-body p-0">
+          {{ if not .Data.UpcomingBookings }}
+            <div class="p-5 text-center text-muted">
+              <i class="bi bi-calendar-x fs-1 mb-3 d-block text-secondary"></i>
+              <p class="mb-2">คุณยังไม่มีคิวการจองอุปกรณ์ที่กำลังจะมาถึง</p>
+              <a href="/booking" class="btn btn-gym-primary btn-sm">เริ่มจองเครื่องเล่นตอนนี้</a>
+            </div>
+          {{ else }}
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>อุปกรณ์</th>
+                    <th>วันที่</th>
+                    <th>เวลา</th>
+                    <th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{ range .Data.UpcomingBookings }}
+                    <tr>
+                      <td>
+                        <div class="d-flex align-items-center gap-3">
+                          <img src="/{{ .ImagePath }}" alt="" style="width: 44px; height: 32px; border-radius: 4px; object-fit: cover;">
+                          <div>
+                            <div class="fw-bold text-light">{{ .EquipmentName }}</div>
+                            <small class="text-muted">{{ .CategoryName }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <i class="bi bi-calendar2 me-1 text-muted"></i>
+                        {{ formatDate .StartTime }}
+                      </td>
+                      <td>
+                        <span class="badge bg-dark border border-success text-success">
+                          {{ formatTime .StartTime }} - {{ formatTime .EndTime }} น.
+                        </span>
+                      </td>
+                      <td>
+                        <form method="POST" action="/api/cancel-booking" class="d-inline">
+                          <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                          <input type="hidden" name="booking_id" value="{{ .ID }}">
+                          {{ if isPast .StartTime }}
+                            <button type="submit" class="btn btn-sm btn-outline-warning" data-confirm="คุณต้องการหยุดเล่นและปล่อยเครื่องว่างใช่หรือไม่?">
+                              <i class="bi bi-stop-circle me-1"></i> เลิกเล่น
+                            </button>
+                          {{ else }}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="คุณต้องการยกเลิกการจองอุปกรณ์นี้ใช่หรือไม่?">
+                              <i class="bi bi-x-circle me-1"></i> ยกเลิก
+                            </button>
+                          {{ end }}
+                        </form>
+                      </td>
+                    </tr>
+                  {{ end }}
+                </tbody>
+              </table>
+            </div>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Shortcuts & Frequently Used -->
+    <div class="col-lg-4">
+      <div class="card card-custom p-4 mb-4">
+        <h5 class="fw-bold mb-3 text-light"><i class="bi bi-star-fill text-warning me-2"></i> เครื่องเล่นที่คุณจองบ่อย</h5>
+        {{ if not .Data.FavoriteEquipments }}
+          <p class="text-muted small mb-0">เมื่อคุณเริ่มจองอุปกรณ์ เครื่องเล่นที่คุณใช้บ่อยจะปรากฏที่นี่</p>
+        {{ else }}
+          <div class="d-flex flex-column gap-3">
+            {{ range .Data.FavoriteEquipments }}
+              <div class="d-flex align-items-center justify-content-between p-2 rounded bg-dark border border-secondary">
+                <div class="d-flex align-items-center gap-2">
+                  <img src="/{{ .ImagePath }}" alt="" style="width: 36px; height: 26px; object-fit: cover; border-radius: 4px;">
+                  <div>
+                    <div class="text-light small fw-bold">{{ .Name }}</div>
+                    <small class="text-muted">{{ .BookingCount }} ครั้ง</small>
+                  </div>
+                </div>
+                <a href="/booking?equipment_id={{ .ID }}" class="btn btn-sm btn-gym-outline py-1 px-2">
+                  จองซ้ำ
+                </a>
+              </div>
+            {{ end }}
+          </div>
+        {{ end }}
+      </div>
+
+      <div class="card card-custom p-4 text-center">
+        <i class="bi bi-shield-check fs-2 text-success mb-2"></i>
+        <h6 class="fw-bold text-light">กฎการเข้าใช้อุปกรณ์</h6>
+        <p class="text-muted small mb-3">กรุณามาถึงก่อนเวลา 5 นาที และเช็ดทำความสะอาดอุปกรณ์ทุกครั้งหลังใช้งานเสร็จสิ้น</p>
+        <a href="/equipments" class="btn btn-gym-outline btn-sm">ดูตารางอุปกรณ์</a>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

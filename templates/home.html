@@ -1,0 +1,157 @@
+{{ define "content" }}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center gy-5">
+      <div class="col-lg-7 text-center text-lg-start">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 mb-3">
+          <span class="dot-pulse"></span>
+          <small class="fw-semibold">ระบบจองเครื่องเล่นยิมแบบเรียลไทม์ (Go Powered)</small>
+        </div>
+        <h1 class="hero-title mb-3">
+          ยกระดับการออกกำลังกาย<br>
+          <span class="hero-gradient-text">จองเครื่องเล่นล่วงหน้า</span> ไม่ต้องแย่งคิว
+        </h1>
+        <p class="text-muted fs-5 mb-4 lead">
+          บริหารเวลาของคุณได้อย่างมีประสิทธิภาพ เลือกช่วงเวลาออกกำลังกายกับอุปกรณ์ที่ต้องการ ตรวจสอบสถานะเครื่องเล่นว่างแบบ Real-Time ได้ทันที
+        </p>
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+          <a href="{{ if .User }}/booking{{ else }}/login{{ end }}" class="btn btn-gym-primary btn-lg">
+            <i class="bi bi-calendar-check me-2"></i> จองเวลาเข้าเล่นทันที
+          </a>
+          <a href="/equipments" class="btn btn-gym-outline btn-lg">
+            <i class="bi bi-compass me-2"></i> สำรวจเครื่องเล่นทั้งหมด
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card card-custom p-4">
+          <h5 class="fw-bold mb-3 text-light d-flex align-items-center gap-2">
+            <i class="bi bi-bar-chart-line-fill text-success"></i> สถิติภาพรวมยิมวันนี้
+          </h5>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="metric-box">
+                <span class="text-muted small">เครื่องเล่นทั้งหมด</span>
+                <div class="metric-value">{{ .Data.Stats.TotalEquipments }}</div>
+                <small class="text-success"><i class="bi bi-check-circle"></i> พร้อมบริการ</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="metric-box cyan">
+                <span class="text-muted small">สถานะพร้อมใช้</span>
+                <div class="metric-value text-info">{{ .Data.Stats.AvailableEqCount }}</div>
+                <small class="text-info"><i class="bi bi-lightning-charge"></i> เครื่องว่าง</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="metric-box amber">
+                <span class="text-muted small">สมาชิกในระบบ</span>
+                <div class="metric-value text-warning">{{ .Data.Stats.TotalUsers }}</div>
+                <small class="text-warning"><i class="bi bi-people"></i> คน</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="metric-box rose">
+                <span class="text-muted small">เซสชันที่จองแล้ว</span>
+                <div class="metric-value text-danger">{{ .Data.Stats.TotalBookings }}</div>
+                <small class="text-danger"><i class="bi bi-fire"></i> รอบการเล่น</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 border-top border-bottom border-secondary border-opacity-25">
+  <div class="container">
+    <div class="text-center mb-5">
+      <span class="text-success fw-bold text-uppercase small letter-spacing-1">ขั้นตอนการใช้งาน</span>
+      <h2 class="fw-bold mt-1">จองง่ายใน 3 ขั้นตอน</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card card-custom p-4 text-center h-100">
+          <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 d-inline-flex mx-auto mb-3">
+            <i class="bi bi-search fs-3"></i>
+          </div>
+          <h5 class="fw-bold">1. เลือกเครื่องเล่น</h5>
+          <p class="text-muted small mb-0">ค้นหาอุปกรณ์ที่ต้องการฝึกตามโซน เช่น คาร์ดิโอ, ฟรีเวท หรือแมชชีน พร้อมดูรายละเอียดและสเปกเครื่อง</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-custom p-4 text-center h-100">
+          <div class="rounded-circle bg-info bg-opacity-10 text-info p-3 d-inline-flex mx-auto mb-3">
+            <i class="bi bi-clock-history fs-3"></i>
+          </div>
+          <h5 class="fw-bold">2. ล็อคช่วงเวลา</h5>
+          <p class="text-muted small mb-0">เลือกวันที่และช่วงเวลาที่ต้องการ ระบบป้องกันการจองชนกัน 100% ล็อคคิวให้คุณโดยเฉพาะ</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card card-custom p-4 text-center h-100">
+          <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 d-inline-flex mx-auto mb-3">
+            <i class="bi bi-check2-circle fs-3"></i>
+          </div>
+          <h5 class="fw-bold">3. เข้าเล่นได้ทันที</h5>
+          <p class="text-muted small mb-0">มาถึงยิมตามเวลานัดหมาย ใช้งานอุปกรณ์ได้ทันทีแบบไม่ต้องรอคิว หรือยกเลิกได้หากติดธุระ</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Equipment Grid -->
+<section class="py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <span class="text-success fw-bold text-uppercase small">เครื่องเล่นไฮไลท์</span>
+        <h2 class="fw-bold mb-0">อุปกรณ์ยอดนิยม</h2>
+      </div>
+      <a href="/equipments" class="btn btn-gym-outline btn-sm">
+        ดูทั้งหมด <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+
+    <div class="row g-4">
+      {{ range .Data.Equipments }}
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-custom h-100 overflow-hidden">
+            <div style="height: 180px; background: #0b1120; overflow: hidden; position: relative;">
+              <img src="/{{ .ImagePath }}" alt="{{ .Name }}" class="w-100 h-100 object-fit-cover">
+              <div class="position-absolute top-0 end-0 m-3">
+                {{ if eq .Status "maintenance" }}
+                  <span class="badge-maintenance"><i class="bi bi-tools"></i> ปิดปรับปรุง</span>
+                {{ else if .IsInUse }}
+                  <span class="badge-booked"><span class="dot-pulse"></span> กำลังมีผู้ใช้งาน</span>
+                {{ else }}
+                  <span class="badge-available"><span class="dot-pulse"></span> ว่างพร้อมใช้</span>
+                {{ end }}
+              </div>
+            </div>
+            <div class="card-body p-4 d-flex flex-column">
+              <div class="text-muted small mb-1">
+                <i class="bi {{ .CategoryIcon }} text-success me-1"></i>
+                {{ .CategoryName }}
+              </div>
+              <h5 class="fw-bold text-light mb-2">{{ .Name }}</h5>
+              <p class="text-muted small flex-grow-1">{{ .Description }}</p>
+              
+              <div class="pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                <a href="/booking?equipment_id={{ .ID }}" 
+                   class="btn btn-sm {{ if eq .Status "maintenance" }}btn-secondary disabled{{ else }}btn-gym-primary{{ end }} w-100">
+                  <i class="bi bi-calendar-plus me-1"></i> {{ if eq .Status "maintenance" }}ไม่สามารถจองได้{{ else }}จองเครื่องเล่นนี้{{ end }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+</section>
+{{ end }}

@@ -1,0 +1,108 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">จองเวลาใช้อุปกรณ์ยิม</h2>
+          <p class="text-muted small mb-0">เลือกรอบเวลาที่ต้องการเพื่อล็อคคิวการเล่นล่วงหน้า</p>
+        </div>
+        <a href="/equipments" class="btn btn-gym-outline btn-sm">
+          <i class="bi bi-arrow-left me-1"></i> ดูเครื่องเล่นอื่น
+        </a>
+      </div>
+
+      {{ if .Data.Errors }}
+        <div class="alert alert-danger border-0">
+          <ul class="mb-0 ps-3">
+            {{ range .Data.Errors }}
+              <li>{{ . }}</li>
+            {{ end }}
+          </ul>
+        </div>
+      {{ end }}
+
+      <div class="card card-custom p-4 p-md-5">
+        <form method="POST" action="/booking" id="booking_form">
+          <input type="hidden" name="csrf_token" value="{{ .CSRFToken }}">
+          
+          <input type="hidden" name="start_time" id="start_time" value="">
+          <input type="hidden" name="end_time" id="end_time" value="">
+
+          <div class="row g-4 mb-4">
+            <!-- Equipment Selector -->
+            <div class="col-md-6">
+              <label class="form-label" for="equipment_id"><i class="bi bi-gear-wide-connected me-1"></i> เลือกอุปกรณ์ / เครื่องเล่น</label>
+              <select class="form-select form-select-lg" name="equipment_id" id="equipment_id" required>
+                <option value="">-- กรุณาเลือกเครื่องเล่น --</option>
+                {{ range .Data.Equipments }}
+                  <option value="{{ .ID }}" {{ if eq $.Data.PreselectedEqID .ID }}selected{{ end }} {{ if eq .Status "maintenance" }}disabled class="text-danger"{{ end }}>
+                    {{ .Name }} [{{ .CategoryName }}] {{ if eq .Status "maintenance" }}(ส่งซ่อม - งดจอง){{ end }}
+                  </option>
+                {{ end }}
+              </select>
+            </div>
+
+            <!-- Date Selector -->
+            <div class="col-md-6">
+              <label class="form-label" for="booking_date"><i class="bi bi-calendar3 me-1"></i> วันที่ต้องการเข้าใช้</label>
+              <input type="date" class="form-control form-control-lg" id="booking_date" name="booking_date" 
+                     value="{{ .Data.SelectedDate }}" 
+                     min="{{ .Data.MinDate }}" 
+                     max="{{ .Data.MaxDate }}" required>
+              <small class="text-muted">สามารถจองล่วงหน้าได้สูงสุด 14 วัน</small>
+            </div>
+          </div>
+
+          <!-- Time Slot Grid Display -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label mb-0"><i class="bi bi-clock me-1"></i> เลือกช่วงเวลา (รอบละ 2 ชั่วโมง)</label>
+              <div class="d-flex gap-3 small">
+                <span class="text-success"><i class="bi bi-check-circle-fill"></i> ว่าง</span>
+                <span class="text-danger"><i class="bi bi-x-circle-fill"></i> ถูกใช้งาน</span>
+                <span class="text-secondary"><i class="bi bi-dash-circle-fill"></i> ผ่านไปแล้ว</span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded bg-dark border border-secondary">
+              <div class="row g-2" id="slots_container">
+                <!-- Dynamically populated via assets/js/booking.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Selection Summary Bar -->
+          <div class="p-3 mb-4 rounded bg-dark border border-success border-opacity-50 d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+              <span class="text-muted small d-block">ช่วงเวลาที่คุณเลือก:</span>
+              <span id="selected_slot_display" class="fw-bold fs-5 text-light">ยังไม่ได้เลือกช่วงเวลา</span>
+            </div>
+            <div class="badge bg-success bg-opacity-10 text-success border border-success p-2">
+              <i class="bi bi-shield-lock me-1"></i> ระบบตรวจสอบการชนคิวอัตโนมัติ (Go Concurrency Safe)
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="mb-4">
+            <label class="form-label" for="notes"><i class="bi bi-card-text me-1"></i> บันทึกเพิ่มเติมหรือเป้าหมายการซ้อม (ไม่บังคับ)</label>
+            <input type="text" class="form-control" id="notes" name="notes" placeholder="เช่น Warm-up 10 min, HIIT intervals, Legs day">
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-flex justify-content-end gap-2">
+            <a href="/equipments" class="btn btn-gym-outline">ยกเลิก</a>
+            <button type="submit" class="btn btn-gym-primary btn-lg" id="btn_submit_booking" disabled>
+              <i class="bi bi-check-circle-fill me-1"></i> ยืนยันการจองเครื่องเล่น
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/booking.js"></script>
+{{ end }}

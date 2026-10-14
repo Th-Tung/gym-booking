@@ -1,0 +1,139 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gy-2">
+    <div>
+      <h2 class="fw-bold mb-1">ตารางการจองเครื่องเล่นทั้งหมด</h2>
+      <p class="text-muted small mb-0">ตรวจสอบคิวจองอุปกรณ์ของสมาชิกและจัดการยกเลิกกรณีฉุกเฉิน</p>
+    </div>
+  </div>
+
+  <!-- Filters Card -->
+  <div class="card card-custom p-4 mb-4">
+    <form method="GET" action="/admin/bookings" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small">กรองตามวันที่</label>
+        <input type="date" name="date" class="form-control" value="{{ .Data.FilterDate }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">กรองตามเครื่องเล่น</label>
+        <select name="equipment_id" class="form-select">
+          <option value="0">-- ทุกเครื่องเล่น --</option>
+          {{ range .Data.Equipments }}
+            <option value="{{ .ID }}" {{ if eq .ID $.Data.FilterEquipment }}selected{{ end }}>{{ .Name }}</option>
+          {{ end }}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">สถานะการจอง</label>
+        <select name="status" class="form-select">
+          <option value="all" {{ if eq .Data.FilterStatus "all" }}selected{{ end }}>ทุกสถานะ</option>
+          <option value="confirmed" {{ if eq .Data.FilterStatus "confirmed" }}selected{{ end }}>ยืนยันแล้ว (Confirmed)</option>
+          <option value="cancelled" {{ if eq .Data.FilterStatus "cancelled" }}selected{{ end }}>ยกเลิกแล้ว (Cancelled)</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-gym-primary w-100"><i class="bi bi-filter"></i> กรอง</button>
+        <a href="/admin/bookings" class="btn btn-gym-outline"><i class="bi bi-arrow-counterclockwise"></i></a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Bookings Ledger Table -->
+  <div class="card card-custom">
+    <div class="card-body p-0">
+      {{ if not .Data.Bookings }}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-calendar-x fs-1 text-secondary mb-2 d-block"></i>
+          <h5>ไม่พบรายการจองตามเงื่อนไขที่เลือก</h5>
+        </div>
+      {{ else }}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>รหัส</th>
+                <th>สมาชิก</th>
+                <th>เครื่องเล่น</th>
+                <th>วันและเวลา</th>
+                <th>สถานะ</th>
+                <th>หมายเหตุ</th>
+                <th class="text-end">การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range .Data.Bookings }}
+                <tr>
+                  <td><span class="text-muted fw-bold">{{ padID .ID "BK-" }}</span></td>
+                  <td>
+                    <div class="fw-bold text-light">{{ .UserName }}</div>
+                    <small class="text-muted">{{ .UserEmail }} | {{ if .UserPhone }}{{ .UserPhone }}{{ else }}-{{ end }}</small>
+                  </td>
+                  <td>
+                    <div class="fw-bold text-light">{{ .EquipmentName }}</div>
+                    <small class="text-muted">{{ .CategoryName }}</small>
+                  </td>
+                  <td>
+                    <div><i class="bi bi-calendar-event me-1 text-muted"></i>{{ formatDate .StartTime }}</div>
+                    <small class="text-success fw-bold">{{ formatTime .StartTime }} - {{ formatTime .EndTime }} น.</small>
+                  </td>
+                  <td>
+                    {{ if eq .Status "cancelled" }}
+                      <span class="badge bg-danger text-white px-2 py-1 shadow-sm"><i class="bi bi-x-circle-fill me-1"></i>ยกเลิกแล้ว</span>
+                    {{ else }}
+                      <span class="badge bg-success text-dark fw-bold px-2 py-1 shadow-sm"><i class="bi bi-check-circle-fill me-1"></i>ยืนยันแล้ว</span>
+                    {{ end }}
+                  </td>
+                  <td class="small text-muted" style="max-width: 200px;">
+                    {{ if .Notes }}{{ .Notes }}{{ else }}-{{ end }}
+                  </td>
+                  <td class="text-end">
+                    {{ if ne .Status "cancelled" }}
+                      <button type="button" class="btn btn-sm btn-outline-danger" 
+                              data-bs-toggle="modal" data-bs-target="#cancelModal{{ .ID }}">
+                        <i class="bi bi-x-circle me-1"></i> ยกเลิก
+                      </button>
+                    {{ end }}
+                  </td>
+                </tr>
+              {{ end }}
+            </tbody>
+          </table>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+</div>
+
+<!-- Admin Cancellation Modals (Placed outside table to prevent backdrop overlay click trapping) -->
+{{ range .Data.Bookings }}
+  {{ if ne .Status "cancelled" }}
+    <div class="modal fade" id="cancelModal{{ .ID }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered text-start">
+        <div class="modal-content bg-dark border-secondary text-light shadow-lg">
+          <form method="POST" action="/api/cancel-booking">
+            <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+            <input type="hidden" name="booking_id" value="{{ .ID }}">
+            <input type="hidden" name="is_admin_request" value="1">
+
+            <div class="modal-header border-secondary">
+              <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i> ยกเลิกการจอง (แอดมิน)</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p class="small text-muted">คุณกำลังจะยกเลิกการจองของ <strong>{{ .UserName }}</strong> สำหรับ <strong>{{ .EquipmentName }}</strong></p>
+              <div class="mb-3">
+                <label class="form-label">เหตุผลในการยกเลิก (ฉุกเฉิน / ซ่อมบำรุง / สมาชิกแจ้งขอ)</label>
+                <input type="text" name="cancel_reason" class="form-control" placeholder="เช่น อุปกรณ์มีอาการชำรุดกะทันหัน ต้องส่งช่างตรวจเช็ค" required>
+              </div>
+            </div>
+            <div class="modal-footer border-secondary">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+              <button type="submit" class="btn btn-danger">ยืนยันการยกเลิก</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {{ end }}
+{{ end }}
+{{ end }}

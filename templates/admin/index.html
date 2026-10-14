@@ -1,0 +1,187 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gy-2">
+    <div>
+      <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded bg-warning bg-opacity-10 text-warning small mb-1">
+        <i class="bi bi-shield-lock-fill"></i> แผงควบคุมผู้ดูแลระบบ (Admin Panel - Go Backend)
+      </div>
+      <h2 class="fw-bold mb-0">ภาพรวมระบบยิม</h2>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/admin/equipments" class="btn btn-gym-outline btn-sm">
+        <i class="bi bi-tools me-1"></i> จัดการอุปกรณ์
+      </a>
+      <a href="/admin/bookings" class="btn btn-gym-primary btn-sm">
+        <i class="bi bi-calendar3 me-1"></i> ตารางจองทั้งหมด
+      </a>
+    </div>
+  </div>
+
+  <!-- Pending Reports Alert Banner -->
+  {{ if gt .Data.PendingReportsCount 0 }}
+    <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-4 rounded-3 border border-warning shadow-sm">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill fs-4 text-warning"></i>
+        <div>
+          <strong class="text-warning">มีการแจ้งซ่อมอุปกรณ์ที่รอดำเนินการ {{ .Data.PendingReportsCount }} รายการ!</strong>
+          <div class="small text-light">สมาชิกได้แจ้งปัญหาเครื่องเล่นชำรุดเข้ามา กรุณาตรวจสอบและดำเนินการ</div>
+        </div>
+      </div>
+      <a href="/admin/reports?status=pending" class="btn btn-warning btn-sm text-dark fw-bold text-nowrap">
+        <i class="bi bi-search me-1"></i> เข้าไปตรวจสอบ
+      </a>
+    </div>
+  {{ end }}
+
+  <!-- KPI Metric Cards -->
+  <div class="row g-3 mb-5">
+    <div class="col-sm-6 col-lg-3">
+      <div class="metric-box">
+        <span class="text-muted small">สมาชิกทั้งหมด</span>
+        <div class="metric-value text-success">{{ .Data.Stats.TotalUsers }}</div>
+        <small class="text-muted"><i class="bi bi-people"></i> บัญชีสมาชิกยิม</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="metric-box cyan">
+        <span class="text-muted small">คิวจองวันนี้</span>
+        <div class="metric-value text-info">{{ .Data.Stats.TodayBookings }}</div>
+        <small class="text-muted"><i class="bi bi-calendar-event"></i> รอบใช้งานวันนี้</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="metric-box amber">
+        <span class="text-muted small">เครื่องเล่นทั้งหมด</span>
+        <div class="metric-value text-warning">{{ .Data.Stats.TotalEquipments }}</div>
+        <small class="text-muted"><i class="bi bi-grid"></i> เครื่องในระบบ</small>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="metric-box rose">
+        <span class="text-muted small">เครื่องแจ้งซ่อม</span>
+        <div class="metric-value text-danger">{{ .Data.Stats.MaintenanceCount }}</div>
+        <small class="text-muted"><i class="bi bi-exclamation-triangle"></i> อยู่ระหว่างซ่อมบำรุง</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Today's Queue -->
+    <div class="col-lg-8">
+      <div class="card card-custom h-100">
+        <div class="card-header card-header-custom d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0 text-light">
+            <i class="bi bi-calendar-day text-success me-2"></i> คิวการจองเข้าใช้งานวันนี้
+          </h5>
+          <span class="badge bg-dark border border-secondary">{{ len .Data.TodayBookings }} รายการ</span>
+        </div>
+        <div class="card-body p-0">
+          {{ if not .Data.TodayBookings }}
+            <div class="p-5 text-center text-muted">
+              <i class="bi bi-calendar-check fs-1 text-secondary mb-2 d-block"></i>
+              <p>ยังไม่มีการจองสำหรับวันนี้</p>
+            </div>
+          {{ else }}
+            <div class="table-responsive">
+              <table class="table table-custom mb-0">
+                <thead>
+                  <tr>
+                    <th>เวลา</th>
+                    <th>เครื่องเล่น</th>
+                    <th>สมาชิกผู้จอง</th>
+                    <th>สถานะ</th>
+                    <th class="text-end">การจัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{ range .Data.TodayBookings }}
+                    <tr>
+                      <td>
+                        <span class="badge bg-dark border {{ if isOngoing .StartTime .EndTime }}border-success text-success{{ else }}border-secondary text-light{{ end }}">
+                          {{ formatTime .StartTime }} - {{ formatTime .EndTime }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="fw-bold text-light">{{ .EquipmentName }}</div>
+                        <small class="text-muted">{{ .CategoryName }}</small>
+                      </td>
+                      <td>
+                        <div class="text-light">{{ .UserName }}</div>
+                        <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ if .UserPhone }}{{ .UserPhone }}{{ else }}-{{ end }}</small>
+                      </td>
+                      <td>
+                        {{ if eq .Status "cancelled" }}
+                          <span class="badge bg-secondary text-white px-2 py-1 shadow-sm"><i class="bi bi-x-circle me-1"></i> ยกเลิกแล้ว</span>
+                        {{ else if isPast .EndTime }}
+                          <span class="badge bg-dark border border-secondary text-muted px-2 py-1">เสร็จสิ้นแล้ว</span>
+                        {{ else }}
+                          <span class="badge bg-danger text-white fw-bold px-2 py-1 shadow-sm"><span class="dot-pulse"></span> ถูกใช้งาน</span>
+                        {{ end }}
+                      </td>
+                      <td class="text-end">
+                        {{ if ne .Status "cancelled" }}
+                          <form method="POST" action="/api/cancel-booking" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                            <input type="hidden" name="booking_id" value="{{ .ID }}">
+                            <input type="hidden" name="is_admin_request" value="1">
+                            <input type="hidden" name="cancel_reason" value="ยกเลิกโดยแอดมิน (Emergency Override)">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="ต้องการยกเลิกการจองนี้ใช่หรือไม่?">
+                              ยกเลิก
+                            </button>
+                          </form>
+                        {{ end }}
+                      </td>
+                    </tr>
+                  {{ end }}
+                </tbody>
+              </table>
+            </div>
+          {{ end }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Popular Equipment & Maintenance Box -->
+    <div class="col-lg-4">
+      <!-- Popular Machines -->
+      <div class="card card-custom p-4 mb-4">
+        <h5 class="fw-bold mb-3 text-light"><i class="bi bi-fire text-danger me-2"></i> เครื่องเล่นยอดนิยม</h5>
+        <div class="d-flex flex-column gap-3">
+          {{ range $idx, $pop := .Data.PopularEquipments }}
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-dark border border-secondary text-muted">#{{ add $idx 1 }}</span>
+                <div>
+                  <div class="text-light small fw-bold">{{ $pop.Name }}</div>
+                  <small class="text-muted">{{ $pop.CategoryName }}</small>
+                </div>
+              </div>
+              <span class="badge bg-success text-dark fw-bold px-2 py-1 shadow-sm">{{ $pop.TotalBookings }} ครั้ง</span>
+            </div>
+          {{ end }}
+        </div>
+      </div>
+
+      <!-- Maintenance Alert Box -->
+      <div class="card card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0 text-light"><i class="bi bi-tools text-warning me-2"></i> เครื่องส่งซ่อมบำรุง</h5>
+          <a href="/admin/equipments" class="btn btn-sm btn-gym-outline">จัดการ</a>
+        </div>
+        {{ if not .Data.MaintenanceList }}
+          <p class="text-muted small mb-0"><i class="bi bi-check-circle text-success me-1"></i> อุปกรณ์ทุกชิ้นพร้อมใช้งานปกติ</p>
+        {{ else }}
+          <div class="d-flex flex-column gap-2">
+            {{ range .Data.MaintenanceList }}
+              <div class="p-2 rounded bg-danger bg-opacity-10 border border-danger border-opacity-25 d-flex justify-content-between align-items-center">
+                <span class="text-light small fw-bold">{{ .Name }}</span>
+                <span class="badge bg-danger">Maintenance</span>
+              </div>
+            {{ end }}
+          </div>
+        {{ end }}
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

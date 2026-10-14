@@ -1,0 +1,133 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="row align-items-center mb-4 gy-3">
+    <div class="col-md-6">
+      <h2 class="fw-bold mb-1">อุปกรณ์และเครื่องเล่นในยิม</h2>
+      <p class="text-muted small mb-0">เลือกอุปกรณ์ที่ต้องการฝึกและตรวจสอบสถานะแบบเรียลไทม์</p>
+    </div>
+    <div class="col-md-6">
+      <form method="GET" action="/equipments" class="d-flex gap-2">
+        {{ if .Data.SelectedCategory }}
+          <input type="hidden" name="category" value="{{ .Data.SelectedCategory }}">
+        {{ end }}
+        <div class="input-group">
+          <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="ค้นหาชื่ออุปกรณ์หรือกล้ามเนื้อ..." value="{{ .Data.SearchQuery }}">
+          <button class="btn btn-gym-primary" type="submit">ค้นหา</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Filter Pills -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="/equipments{{ if .Data.SearchQuery }}?q={{ .Data.SearchQuery }}{{ end }}" 
+       class="btn btn-sm {{ if eq .Data.SelectedCategory 0 }}btn-gym-primary{{ else }}btn-gym-outline{{ end }}">
+      <i class="bi bi-grid-fill me-1"></i> ทั้งหมด
+    </a>
+    {{ range .Data.Categories }}
+      <a href="/equipments?category={{ .ID }}{{ if $.Data.SearchQuery }}&q={{ $.Data.SearchQuery }}{{ end }}" 
+         class="btn btn-sm {{ if eq $.Data.SelectedCategory .ID }}btn-gym-primary{{ else }}btn-gym-outline{{ end }}">
+        <i class="bi {{ .Icon }} me-1"></i> {{ .Name }} ({{ .TotalEquipments }})
+      </a>
+    {{ end }}
+  </div>
+
+  <!-- Equipment Grid -->
+  {{ if not .Data.Equipments }}
+    <div class="card card-custom p-5 text-center my-4">
+      <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
+      <h4 class="text-light">ไม่พบอุปกรณ์ที่ตรงกับเงื่อนไข</h4>
+      <p class="text-muted small">ลองค้นหาด้วยคำอื่นหรือเลือกหมวดหมู่อื่นดูสิ</p>
+      <div class="mt-2">
+        <a href="/equipments" class="btn btn-gym-outline btn-sm">ล้างตัวกรองทั้งหมด</a>
+      </div>
+    </div>
+  {{ else }}
+    <div class="row g-4">
+      {{ range .Data.Equipments }}
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-custom h-100 overflow-hidden d-flex flex-column">
+            <div style="height: 180px; background: #0b1120; position: relative;">
+              <img src="/{{ .ImagePath }}" alt="{{ .Name }}" class="w-100 h-100 object-fit-cover">
+              <div class="position-absolute top-0 end-0 m-3">
+                {{ if eq .Status "maintenance" }}
+                  <span class="badge-maintenance"><i class="bi bi-tools"></i> ส่งซ่อมบำรุง</span>
+                {{ else if .IsInUse }}
+                  <span class="badge bg-danger text-white fw-bold px-3 py-1 shadow-sm"><span class="dot-pulse"></span> ถูกใช้งาน</span>
+                {{ else }}
+                  <span class="badge-available"><span class="dot-pulse"></span> ว่างพร้อมใช้</span>
+                {{ end }}
+              </div>
+            </div>
+            <div class="card-body p-4 d-flex flex-column flex-grow-1">
+              <div class="text-muted small mb-1">
+                <i class="bi {{ .CategoryIcon }} text-success me-1"></i>
+                {{ .CategoryName }}
+              </div>
+              <h5 class="fw-bold text-light mb-2">{{ .Name }}</h5>
+              <p class="text-muted small flex-grow-1">{{ .Description }}</p>
+
+              <div class="pt-3 border-top border-secondary border-opacity-25 d-flex gap-2">
+                <a href="/booking?equipment_id={{ .ID }}" 
+                   class="btn btn-sm {{ if eq .Status "maintenance" }}btn-secondary disabled{{ else }}btn-gym-primary{{ end }} flex-grow-1">
+                  <i class="bi bi-calendar-plus me-1"></i> {{ if eq .Status "maintenance" }}งดให้บริการชั่วคราว{{ else }}จองเครื่องเล่นนี้{{ end }}
+                </a>
+                {{ if and $.User (ne .Status "maintenance") }}
+                  <button type="button" class="btn btn-sm btn-outline-warning text-nowrap" data-bs-toggle="modal" data-bs-target="#reportModal{{ .ID }}" title="แจ้งเครื่องชำรุดหรือมีปัญหา">
+                    <i class="bi bi-tools"></i> แจ้งซ่อม
+                  </button>
+                {{ end }}
+              </div>
+            </div>
+          </div>
+        </div>
+      {{ end }}
+    </div>
+
+    <!-- Modals for reporting issues (Placed outside card-custom to prevent backdrop clipping) -->
+    {{ range .Data.Equipments }}
+      {{ if and $.User (ne .Status "maintenance") }}
+        <div class="modal fade" id="reportModal{{ .ID }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light border-secondary shadow-lg">
+              <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold text-warning">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>แจ้งปัญหา / ส่งซ่อมอุปกรณ์
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form method="POST" action="/report-issue">
+                <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                <input type="hidden" name="equipment_id" value="{{ .ID }}">
+                <div class="modal-body">
+                  <div class="d-flex align-items-center gap-3 p-2 rounded bg-black bg-opacity-40 border border-secondary mb-3">
+                    <img src="/{{ .ImagePath }}" alt="{{ .Name }}" style="width: 56px; height: 42px; border-radius: 4px; object-fit: cover;">
+                    <div>
+                      <div class="fw-bold text-light">{{ .Name }}</div>
+                      <small class="text-muted">{{ .CategoryName }}</small>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label text-light fw-bold small">รายละเอียดอาการชำรุด หรือปัญหาที่พบ <span class="text-danger">*</span></label>
+                    <textarea name="issue_description" class="form-control bg-black border-secondary text-light" rows="4" placeholder="เช่น ลูกรอกฝืด, สายเคเบิลหย่อน, หน้าจอไม่ติด, มีเสียงดังผิดปกติ..." required></textarea>
+                    <div class="form-text text-muted">
+                      เมื่อผู้ดูแลระบบ (Admin) ตรวจสอบและกดยืนยัน อุปกรณ์นี้จะถูกปิดให้บริการชั่วคราวเพื่อซ่อมแซม
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                  <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+                  <button type="submit" class="btn btn-warning btn-sm text-dark fw-bold">
+                    <i class="bi bi-send-fill me-1"></i> ยืนยันส่งเรื่องแจ้งซ่อม
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {{ end }}
+    {{ end }}
+  {{ end }}
+</div>
+{{ end }}

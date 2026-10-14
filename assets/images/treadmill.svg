@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" fill="url(#bgGrad)" rx="16"/>
+  <path d="M 60 190 L 320 190" stroke="#334155" stroke-width="12" stroke-linecap="round"/>
+  <path d="M 70 190 L 130 90" stroke="#64748b" stroke-width="10" stroke-linecap="round"/>
+  <path d="M 130 90 L 200 90" stroke="#64748b" stroke-width="8" stroke-linecap="round"/>
+  <rect x="180" y="65" width="45" height="35" rx="6" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
+  <path d="M 85 180 L 305 180" stroke="url(#accent)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 100 174 L 140 174" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 180 174 L 220 174" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 260 174 L 290 174" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+  <rect x="70" y="145" width="45" height="40" rx="8" fill="#475569"/>
+  <text x="360" y="45" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#22c55e" text-anchor="end">TREADMILL T900</text>
+</svg>

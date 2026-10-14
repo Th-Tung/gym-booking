@@ -1,0 +1,270 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gy-2">
+    <div>
+      <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded bg-warning bg-opacity-10 text-warning small mb-1">
+        <i class="bi bi-shield-lock-fill"></i> ระบบตรวจสอบและบริหารจัดการอุปกรณ์ชำรุด
+      </div>
+      <h2 class="fw-bold mb-0">
+        รายการแจ้งซ่อมอุปกรณ์
+        {{ if gt .Data.PendingCount 0 }}
+          <span class="badge bg-danger rounded-pill fs-6 ms-2">รอตรวจสอบ {{ .Data.PendingCount }}</span>
+        {{ end }}
+      </h2>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/admin" class="btn btn-gym-outline btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> แดชบอร์ด Admin
+      </a>
+      <a href="/admin/equipments" class="btn btn-gym-primary btn-sm">
+        <i class="bi bi-tools me-1"></i> รายการอุปกรณ์ทั้งหมด
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter Status Tabs -->
+  <ul class="nav nav-pills mb-4 gap-2">
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "all" }}active bg-warning text-dark fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/admin/reports?status=all">ทั้งหมด</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "pending" }}active bg-warning text-dark fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/admin/reports?status=pending">
+        รอดำเนินการ {{ if gt .Data.PendingCount 0 }}<span class="badge bg-danger ms-1">{{ .Data.PendingCount }}</span>{{ end }}
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "confirmed_maintenance" }}active bg-danger text-white fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/admin/reports?status=confirmed_maintenance">ปิดซ่อมชั่วคราว</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "resolved" }}active bg-success text-dark fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/admin/reports?status=resolved">ซ่อมเสร็จสิ้นแล้ว</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "rejected" }}active bg-secondary text-white fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/admin/reports?status=rejected">ปฏิเสธ</a>
+    </li>
+  </ul>
+
+  <!-- Reports Table Card -->
+  <div class="card card-custom">
+    <div class="card-body p-0">
+      {{ if not .Data.Reports }}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-clipboard-check fs-1 mb-3 d-block text-secondary"></i>
+          <h5 class="text-light">ไม่พบรายการแจ้งซ่อมตามเงื่อนไข</h5>
+          <p class="small text-muted mb-0">ไม่มีประวัติการแจ้งซ่อมที่ตรงกับสถานะที่เลือก</p>
+        </div>
+      {{ else }}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>รหัส</th>
+                <th>อุปกรณ์ / หมวดหมู่</th>
+                <th>สมาชิกผู้แจ้ง</th>
+                <th>อาการชำรุด / ปัญหา</th>
+                <th>สถานะ</th>
+                <th>บันทึก Admin</th>
+                <th>วันที่แจ้ง</th>
+                <th class="text-end">การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range .Data.Reports }}
+                <tr>
+                  <td>
+                    <span class="text-muted fw-bold">{{ padID .ID "REP-" }}</span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      <img src="/{{ .ImagePath }}" alt="" style="width: 48px; height: 34px; border-radius: 4px; object-fit: cover;">
+                      <div>
+                        <div class="fw-bold text-light">{{ .EquipmentName }}</div>
+                        <small class="text-muted">{{ .CategoryName }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="fw-bold text-light">{{ .UserName }}</div>
+                    <small class="text-muted"><i class="bi bi-envelope me-1"></i>{{ .UserEmail }}</small>
+                    {{ if .UserPhone }}
+                      <br><small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ .UserPhone }}</small>
+                    {{ end }}
+                  </td>
+                  <td style="max-width: 250px;">
+                    <div class="text-light small fw-semibold bg-dark p-2 rounded border border-secondary">
+                      <i class="bi bi-chat-left-quote text-warning me-1"></i> {{ .IssueDescription }}
+                    </div>
+                  </td>
+                  <td>
+                    {{ if eq .Status "pending" }}
+                      <span class="badge bg-warning text-dark fw-bold px-2 py-1 shadow-sm">
+                        <i class="bi bi-hourglass-split me-1"></i> รอดำเนินการ
+                      </span>
+                    {{ else if eq .Status "confirmed_maintenance" }}
+                      <span class="badge bg-danger text-white fw-bold px-2 py-1 shadow-sm">
+                        <i class="bi bi-tools me-1"></i> ปิดซ่อมชั่วคราว
+                      </span>
+                    {{ else if eq .Status "resolved" }}
+                      <span class="badge bg-success text-dark fw-bold px-2 py-1 shadow-sm">
+                        <i class="bi bi-check-circle-fill me-1"></i> ซ่อมเสร็จแล้ว
+                      </span>
+                    {{ else if eq .Status "rejected" }}
+                      <span class="badge bg-secondary text-white px-2 py-1">
+                        <i class="bi bi-x-circle me-1"></i> ปฏิเสธ
+                      </span>
+                    {{ end }}
+                  </td>
+                  <td class="small text-muted" style="max-width: 200px;">
+                    {{ if .AdminNotes }}{{ .AdminNotes }}{{ else }}-{{ end }}
+                  </td>
+                  <td class="small text-muted">
+                    <i class="bi bi-calendar2 me-1"></i> {{ formatDate .CreatedAt }}
+                    <br><i class="bi bi-clock me-1"></i> {{ formatTime .CreatedAt }} น.
+                  </td>
+                  <td class="text-end text-nowrap">
+                    {{ if eq .Status "pending" }}
+                      <!-- Confirm / Close for maintenance -->
+                      <button type="button" class="btn btn-sm btn-danger me-1" data-bs-toggle="modal" data-bs-target="#confirmModal{{ .ID }}" title="ยืนยันปิดเครื่องซ่อมบำรุง">
+                        <i class="bi bi-shield-exclamation me-1"></i> ยืนยันปิดซ่อม
+                      </button>
+                      <!-- Reject -->
+                      <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#rejectModal{{ .ID }}" title="ปฏิเสธเรื่อง">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    {{ else if eq .Status "confirmed_maintenance" }}
+                      <!-- Resolve / Re-open -->
+                      <button type="button" class="btn btn-sm btn-success text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#resolveModal{{ .ID }}" title="ซ่อมเสร็จแล้วเปิดให้บริการใหม่">
+                        <i class="bi bi-check2-circle me-1"></i> ซ่อมเสร็จสิ้น
+                      </button>
+                    {{ else }}
+                      <span class="text-muted small"><i class="bi bi-lock"></i> เรียบร้อย</span>
+                    {{ end }}
+                  </td>
+                </tr>
+              {{ end }}
+            </tbody>
+          </table>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+
+  <!-- Action Modals (Placed outside card-custom to prevent backdrop issues) -->
+  {{ if .Data.Reports }}
+    {{ range .Data.Reports }}
+      {{ if eq .Status "pending" }}
+        <!-- Confirm Maintenance Modal -->
+        <div class="modal fade" id="confirmModal{{ .ID }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light border-danger shadow-lg">
+              <div class="modal-header border-danger">
+                <h5 class="modal-title fw-bold text-danger">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>ยืนยันปิดซ่อมอุปกรณ์ชั่วคราว
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form method="POST" action="/admin/reports/confirm">
+                <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                <input type="hidden" name="report_id" value="{{ .ID }}">
+                <div class="modal-body">
+                  <div class="alert alert-warning small mb-3">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    <strong>ผลกระทบของระบบ:</strong> เมื่อกดยืนยัน อุปกรณ์ <strong>{{ .EquipmentName }}</strong> จะเปลี่ยนสถานะเป็น <strong>"ส่งซ่อมบำรุง"</strong> ทันที ช่วงเวลาจองทั้งหมดจะถูกปิดชั่วคราว และคิวการจองล่วงหน้าที่ตรงกับอุปกรณ์นี้จะถูกยกเลิกอัตโนมัติ
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label text-muted small">ปัญหาที่สมาชิกแจ้ง:</label>
+                    <div class="p-2 rounded bg-black border border-secondary text-light small">
+                      {{ .IssueDescription }}
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label text-light fw-bold small">บันทึกเพิ่มเติมจาก Admin (เช่น กำหนดการช่างเข้าซ่อม)</label>
+                    <textarea name="admin_notes" class="form-control bg-black border-secondary text-light" rows="2" placeholder="เช่น รออะไหล่ / ช่างกำลังเข้าซ่อม..."></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                  <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+                  <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                    <i class="bi bi-tools me-1"></i> ยืนยันปิดซ่อมและปิดเวลาจอง
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reject Modal -->
+        <div class="modal fade" id="rejectModal{{ .ID }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light border-secondary shadow-lg">
+              <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold text-secondary">
+                  <i class="bi bi-x-circle me-2"></i>ปฏิเสธเรื่องแจ้งซ่อม
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form method="POST" action="/admin/reports/reject">
+                <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                <input type="hidden" name="report_id" value="{{ .ID }}">
+                <div class="modal-body">
+                  <p class="small text-muted mb-3">
+                    หากตรวจสอบแล้วพบว่าอุปกรณ์ยังใช้งานได้ปกติ ไม่มีอาการชำรุด สามารถกดปฏิเสธเรื่องได้ (อุปกรณ์จะยังคงเปิดให้บริการตามปกติ)
+                  </p>
+                  <div class="mb-3">
+                    <label class="form-label text-light fw-bold small">เหตุผลการปฏิเสธ</label>
+                    <textarea name="admin_notes" class="form-control bg-black border-secondary text-light" rows="2" placeholder="เช่น ตรวจสอบแล้วใช้งานได้ปกติ ไม่พบปัญหา..."></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                  <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+                  <button type="submit" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x-circle me-1"></i> ปฏิเสธเรื่อง
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {{ else if eq .Status "confirmed_maintenance" }}
+        <!-- Resolve Maintenance Modal -->
+        <div class="modal fade" id="resolveModal{{ .ID }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light border-success shadow-lg">
+              <div class="modal-header border-success">
+                <h5 class="modal-title fw-bold text-success">
+                  <i class="bi bi-check2-circle me-2"></i>ยืนยันซ่อมเสร็จสิ้น & เปิดให้บริการ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form method="POST" action="/admin/reports/resolve">
+                <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                <input type="hidden" name="report_id" value="{{ .ID }}">
+                <div class="modal-body">
+                  <div class="alert alert-success small mb-3">
+                    <i class="bi bi-check-circle-fill me-1"></i>
+                    เมื่อกดยืนยัน อุปกรณ์ <strong>{{ .EquipmentName }}</strong> จะเปลี่ยนสถานะกลับเป็น <strong>"พร้อมใช้งาน (Available)"</strong> และสมาชิกจะสามารถเลือกช่วงเวลาจองใช้งานได้ตามปกติทันที
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label text-light fw-bold small">บันทึกผลการซ่อมแซม</label>
+                    <textarea name="admin_notes" class="form-control bg-black border-secondary text-light" rows="2" placeholder="เช่น เปลี่ยนสายสลิงใหม่และหยอดน้ำมันหล่อลื่นเรียบร้อยแล้ว..."></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                  <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ยกเลิก</button>
+                  <button type="submit" class="btn btn-gym-primary btn-sm fw-bold">
+                    <i class="bi bi-check-circle-fill me-1"></i> ยืนยันเปิดใช้งานตามปกติ
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {{ end }}
+    {{ end }}
+  {{ end }}
+</div>
+{{ end }}

@@ -1,0 +1,125 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gy-2">
+    <div>
+      <h2 class="fw-bold mb-1">รายการจองของฉัน</h2>
+      <p class="text-muted small mb-0">ตรวจสอบคิวการเล่นและประวัติการฝึกซ้อมของคุณ</p>
+    </div>
+    <a href="/booking" class="btn btn-gym-primary">
+      <i class="bi bi-calendar-plus me-1"></i> จองเครื่องเล่นใหม่
+    </a>
+  </div>
+
+  <!-- Status Tabs -->
+  <ul class="nav nav-pills mb-4 gap-2">
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "all" }}active bg-success text-dark fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/my-bookings?status=all">ทั้งหมด</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "upcoming" }}active bg-success text-dark fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/my-bookings?status=upcoming">กำลังจะมาถึง</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "completed" }}active bg-success text-dark fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/my-bookings?status=completed">เสร็จสิ้นแล้ว</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{ if eq .Data.FilterStatus "cancelled" }}active bg-success text-dark fw-bold{{ else }}btn-gym-outline{{ end }}" 
+         href="/my-bookings?status=cancelled">ยกเลิกแล้ว</a>
+    </li>
+  </ul>
+
+  <!-- Bookings List Card -->
+  <div class="card card-custom">
+    <div class="card-body p-0">
+      {{ if not .Data.Bookings }}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-calendar-x fs-1 mb-3 d-block text-secondary"></i>
+          <h5 class="text-light">ไม่พบรายการจองตามเงื่อนไข</h5>
+          <p class="small text-muted mb-3">คุณสามารถเลือกเครื่องเล่นและจองช่วงเวลาที่สะดวกได้ทันที</p>
+          <a href="/booking" class="btn btn-gym-primary btn-sm">จองเวลาออกกำลังกาย</a>
+        </div>
+      {{ else }}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>รหัสการจอง</th>
+                <th>อุปกรณ์ / หมวดหมู่</th>
+                <th>วันที่</th>
+                <th>ช่วงเวลา</th>
+                <th>สถานะ</th>
+                <th>หมายเหตุ</th>
+                <th class="text-end">การจัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range .Data.Bookings }}
+                <tr>
+                  <td>
+                    <span class="text-muted fw-bold">{{ padID .ID "BK-" }}</span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      <img src="/{{ .ImagePath }}" alt="" style="width: 48px; height: 32px; border-radius: 4px; object-fit: cover;">
+                      <div>
+                        <div class="fw-bold text-light">{{ .EquipmentName }}</div>
+                        <small class="text-muted">{{ .CategoryName }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <i class="bi bi-calendar2 me-1 text-muted"></i>
+                    {{ formatDate .StartTime }}
+                  </td>
+                  <td>
+                    <span class="badge bg-dark border border-secondary text-light">
+                      {{ formatTime .StartTime }} - {{ formatTime .EndTime }} น.
+                    </span>
+                  </td>
+                  <td>
+                    {{ if eq .Status "cancelled" }}
+                      <span class="badge bg-danger text-white px-2 py-1 shadow-sm"><i class="bi bi-x-circle-fill me-1"></i>ยกเลิกแล้ว</span>
+                    {{ else if isPast .EndTime }}
+                      <span class="badge bg-secondary px-2 py-1">เสร็จสิ้นแล้ว</span>
+                    {{ else if isPast .StartTime }}
+                      <span class="badge bg-primary text-white px-2 py-1 shadow-sm"><i class="bi bi-play-circle-fill me-1"></i>กำลังใช้งาน</span>
+                    {{ else }}
+                      <span class="badge bg-success text-dark fw-bold px-2 py-1 shadow-sm"><i class="bi bi-check-circle-fill me-1"></i>ยืนยันแล้ว</span>
+                    {{ end }}
+                  </td>
+                  <td class="small text-muted">
+                    {{ if .Notes }}{{ .Notes }}{{ else }}-{{ end }}
+                  </td>
+                  <td class="text-end">
+                    {{ if and (eq .Status "confirmed") (not (isPast .EndTime)) }}
+                      <form method="POST" action="/api/cancel-booking" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                        <input type="hidden" name="booking_id" value="{{ .ID }}">
+                        {{ if isPast .StartTime }}
+                          <button type="submit" class="btn btn-sm btn-outline-warning" data-confirm="คุณต้องการหยุดเล่นและปล่อยเครื่องว่างใช่หรือไม่?">
+                            <i class="bi bi-stop-circle me-1"></i> เลิกเล่น / ยกเลิกคิว
+                          </button>
+                        {{ else }}
+                          <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="คุณต้องการยกเลิกคิวนี้จริงหรือไม่?">
+                            <i class="bi bi-x-circle me-1"></i> ยกเลิก
+                          </button>
+                        {{ end }}
+                      </form>
+                    {{ else }}
+                      <a href="/booking?equipment_id={{ .EquipmentID }}" class="btn btn-sm btn-gym-outline">
+                        <i class="bi bi-arrow-repeat me-1"></i> จองใหม่
+                      </a>
+                    {{ end }}
+                  </td>
+                </tr>
+              {{ end }}
+            </tbody>
+          </table>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+</div>
+{{ end }}

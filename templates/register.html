@@ -1,0 +1,64 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+      <div class="card card-custom p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-3">
+            <i class="bi bi-person-plus-fill fs-2"></i>
+          </div>
+          <h3 class="fw-bold mb-1">สร้างบัญชีสมาชิก</h3>
+          <p class="text-muted small">สมัครสมาชิกเพื่อจองเวลาใช้อุปกรณ์ยิมของคุณ</p>
+        </div>
+
+        {{ if .Data.Errors }}
+          <div class="alert alert-danger border-0">
+            <ul class="mb-0 ps-3">
+              {{ range .Data.Errors }}
+                <li>{{ . }}</li>
+              {{ end }}
+            </ul>
+          </div>
+        {{ end }}
+
+        <form method="POST" action="/register">
+          <input type="hidden" name="csrf_token" value="{{ .CSRFToken }}">
+
+          <div class="mb-3">
+            <label class="form-label" for="name"><i class="bi bi-person me-1"></i> ชื่อ - นามสกุล</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ .Data.Name }}" placeholder="สมชาย ร่างทอง" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="email"><i class="bi bi-envelope me-1"></i> อีเมล</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ .Data.Email }}" placeholder="youremail@example.com" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="phone"><i class="bi bi-telephone me-1"></i> เบอร์โทรศัพท์</label>
+            <input type="tel" class="form-control" id="phone" name="phone" value="{{ .Data.Phone }}" placeholder="08XXXXXXXX">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="password"><i class="bi bi-lock me-1"></i> รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label" for="password_confirm"><i class="bi bi-shield-check me-1"></i> ยืนยันรหัสผ่าน</label>
+            <input type="password" class="form-control" id="password_confirm" name="password_confirm" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" class="btn btn-gym-primary w-100 py-2 fs-6">
+            <i class="bi bi-check-circle me-1"></i> ยืนยันการสมัครสมาชิก
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top border-secondary">
+          <p class="text-muted small mb-0">มีบัญชีผู้ใช้อยู่แล้ว? <a href="/login" class="text-success fw-bold text-decoration-none">เข้าสู่ระบบที่นี่</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

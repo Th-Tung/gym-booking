@@ -1,0 +1,84 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="row align-items-center mb-4 gy-3">
+    <div class="col-md-6">
+      <h2 class="fw-bold mb-1">รายชื่อสมาชิกและผู้ใช้งาน</h2>
+      <p class="text-muted small mb-0">ตรวจสอบข้อมูลสมาชิก สถิติการใช้งาน และจัดการสิทธิ์ผู้ดูแลระบบ</p>
+    </div>
+    <div class="col-md-6">
+      <form method="GET" action="/admin/users" class="d-flex gap-2">
+        <div class="input-group">
+          <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="ค้นหาชื่อ, อีเมล หรือเบอร์โทร..." value="{{ .Data.SearchQuery }}">
+          <button class="btn btn-gym-primary" type="submit">ค้นหา</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card card-custom">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>รหัส</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>อีเมล</th>
+              <th>เบอร์โทรศัพท์</th>
+              <th>สิทธิ์การใช้งาน</th>
+              <th>จำนวนครั้งที่จอง</th>
+              <th>วันที่สมัคร</th>
+              <th class="text-end">ปรับสิทธิ์</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range .Data.Users }}
+              <tr>
+                <td><span class="text-muted fw-bold">{{ padID .ID "US-" }}</span></td>
+                <td>
+                  <div class="fw-bold text-light">
+                    {{ .Name }}
+                    {{ if eq .ID $.User.ID }}
+                      <span class="badge bg-secondary ms-1">คุณ</span>
+                    {{ end }}
+                  </div>
+                </td>
+                <td class="text-muted small">{{ .Email }}</td>
+                <td class="text-muted small">{{ if .Phone }}{{ .Phone }}{{ else }}-{{ end }}</td>
+                <td>
+                  {{ if eq .Role "admin" }}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-shield-lock-fill me-1"></i>ADMIN</span>
+                  {{ else }}
+                    <span class="badge bg-success bg-opacity-20 text-success border border-success">MEMBER</span>
+                  {{ end }}
+                </td>
+                <td>
+                  <span class="badge bg-dark border border-secondary text-info">{{ .TotalBookings }} ครั้ง</span>
+                </td>
+                <td class="small text-muted">{{ formatDate .CreatedAt }}</td>
+                <td class="text-end">
+                  {{ if ne .ID $.User.ID }}
+                    <form method="POST" action="/admin/users/role" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                      <input type="hidden" name="user_id" value="{{ .ID }}">
+                      <input type="hidden" name="role" value="{{ if eq .Role "admin" }}member{{ else }}admin{{ end }}">
+                      <button type="submit" class="btn btn-sm {{ if eq .Role "admin" }}btn-outline-secondary{{ else }}btn-outline-warning{{ end }}"
+                              data-confirm="ต้องการเปลี่ยนสิทธิ์ของ {{ .Name }} หรือไม่?">
+                        <i class="bi {{ if eq .Role "admin" }}bi-person-dash{{ else }}bi-shield-plus{{ end }}"></i>
+                        {{ if eq .Role "admin" }}ลดเป็น Member{{ else }}ตั้งเป็น Admin{{ end }}
+                      </button>
+                    </form>
+                  {{ else }}
+                    <span class="text-muted small">-</span>
+                  {{ end }}
+                </td>
+              </tr>
+            {{ end }}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

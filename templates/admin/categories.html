@@ -1,0 +1,144 @@
+{{ define "content" }}
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gy-2">
+    <div>
+      <h2 class="fw-bold mb-1">จัดการหมวดหมู่อุปกรณ์</h2>
+      <p class="text-muted small mb-0">จัดแบ่งโซนการออกกำลังกาย (เช่น คาร์ดิโอ, ฟรีเวท, แมชชีน)</p>
+    </div>
+    <button class="btn btn-gym-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+      <i class="bi bi-plus-lg me-1"></i> เพิ่มหมวดหมู่ใหม่
+    </button>
+  </div>
+
+  <div class="card card-custom">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>ไอคอน</th>
+              <th>ชื่อหมวดหมู่</th>
+              <th>คำอธิบาย</th>
+              <th>จำนวนอุปกรณ์ในโซน</th>
+              <th class="text-end">การจัดการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{ range .Data.Categories }}
+              <tr>
+                <td>
+                  <div class="rounded bg-dark p-2 text-center text-success border border-secondary" style="width: 40px; height: 40px;">
+                    <i class="bi {{ .Icon }} fs-5"></i>
+                  </div>
+                </td>
+                <td>
+                  <span class="fw-bold text-light">{{ .Name }}</span>
+                </td>
+                <td class="text-muted small">
+                  {{ .Description }}
+                </td>
+                <td>
+                  <span class="badge bg-dark border border-secondary text-info">{{ .TotalEquipments }} เครื่อง</span>
+                </td>
+                <td class="text-end">
+                  <!-- Edit Button -->
+                  <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#editModal{{ .ID }}">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+
+                  <!-- Delete Button -->
+                  <form method="POST" action="/admin/categories/delete" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+                    <input type="hidden" name="id" value="{{ .ID }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm="ต้องการลบหมวดหมู่นี้ใช่หรือไม่? (อุปกรณ์ในหมวดหมู่นี้จะถูกลบไปด้วยตาม Foreign Key)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {{ end }}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Category Modals (Rendered outside card to prevent backdrop click interception) -->
+{{ range .Data.Categories }}
+  <div class="modal fade" id="editModal{{ .ID }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark border-secondary text-light shadow-lg">
+        <form method="POST" action="/admin/categories/edit">
+          <input type="hidden" name="csrf_token" value="{{ $.CSRFToken }}">
+          <input type="hidden" name="id" value="{{ .ID }}">
+
+          <div class="modal-header border-secondary">
+            <h5 class="modal-title"><i class="bi bi-pencil-square text-info me-2"></i> แก้ไขหมวดหมู่</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">ชื่อหมวดหมู่</label>
+              <input type="text" name="name" class="form-control" value="{{ .Name }}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">ไอคอน Bootstrap Icon Class</label>
+              <input type="text" name="icon" class="form-control" value="{{ .Icon }}" placeholder="bi-heart-pulse">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">คำอธิบาย</label>
+              <textarea name="description" class="form-control" rows="3">{{ .Description }}</textarea>
+            </div>
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+            <button type="submit" class="btn btn-gym-primary">บันทึก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{{ end }}
+
+<!-- Add Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark border-secondary text-light shadow-lg">
+      <form method="POST" action="/admin/categories/add">
+        <input type="hidden" name="csrf_token" value="{{ .CSRFToken }}">
+
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title"><i class="bi bi-plus-circle text-success me-2"></i> เพิ่มหมวดหมู่ใหม่</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">ชื่อหมวดหมู่</label>
+            <input type="text" name="name" class="form-control" placeholder="เช่น Recovery & Stretching Zone" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">ไอคอน</label>
+            <select name="icon" class="form-select">
+              <option value="bi-heart-pulse">bi-heart-pulse (หัวใจ / คาร์ดิโอ)</option>
+              <option value="bi-speedometer2">bi-speedometer2 (เวทเทรนนิ่ง)</option>
+              <option value="bi-cpu">bi-cpu (แมชชีน)</option>
+              <option value="bi-activity">bi-activity (กิจกรรมเทรนนิ่ง)</option>
+              <option value="bi-fire">bi-fire (ไฮอิท/เผาผลาญ)</option>
+              <option value="bi-shield-shaded">bi-shield-shaded (เซฟตี้/ยืดหยุ่น)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">คำอธิบายหมวดหมู่</label>
+            <textarea name="description" class="form-control" rows="3" placeholder="ระบุวัตถุประสงค์ของโซนนี้"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="submit" class="btn btn-gym-primary">เพิ่มหมวดหมู่</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{{ end }}

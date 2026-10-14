@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="100%" height="100%">
+  <rect width="400" height="250" fill="#0f172a" rx="16"/>
+  <line x1="80" y1="200" x2="320" y2="200" stroke="#334155" stroke-width="10"/>
+  <rect x="130" y="50" width="14" height="150" fill="#eab308"/>
+  <rect x="250" y="50" width="14" height="150" fill="#eab308"/>
+  <rect x="125" y="45" width="145" height="12" fill="#ca8a04"/>
+  <line x1="144" y1="130" x2="250" y2="130" stroke="#94a3b8" stroke-width="6"/>
+  <line x1="100" y1="100" x2="295" y2="100" stroke="#f8fafc" stroke-width="6"/>
+  <rect x="115" y="85" width="12" height="30" fill="#ef4444" rx="2"/>
+  <rect x="268" y="85" width="12" height="30" fill="#ef4444" rx="2"/>
+  <text x="360" y="40" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#eab308" text-anchor="end">SQUAT RACK</text>
+</svg>
