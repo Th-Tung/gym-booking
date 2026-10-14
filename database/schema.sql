@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS `bookings` (
     CONSTRAINT `fk_booking_equipment` FOREIGN KEY (`equipment_id`) REFERENCES `equipments` (`id`) ON DELETE CASCADE,
     INDEX `idx_equipment_time` (`equipment_id`, `start_time`, `end_time`),
     INDEX `idx_user_bookings` (`user_id`, `start_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Table: maintenance_reports
 CREATE TABLE IF NOT EXISTS `maintenance_reports` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
